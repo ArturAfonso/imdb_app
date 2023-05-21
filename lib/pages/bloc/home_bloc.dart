@@ -1,5 +1,8 @@
-import 'package:flutter_bloc/flutter_bloc.dart';
+import 'dart:convert';
 
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:http/http.dart' as http;
+import '../../shared/models/filme_model.dart';
 import 'home_event.dart';
 import 'home_state.dart';
 
@@ -11,7 +14,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     HomeState state;
     switch (event.runtimeType) {
       case HomeFetchList:
-        state = await _fetchList();
+        state = await fetchList();
         break;
       case HomeFetchListWithError:
         state = HomeErrorState(message: 'algo nao funcionou');
@@ -26,22 +29,30 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     yield state;
   }
 
-  Future<HomeState> _fetchList() async {
-    var list = await Future.delayed(
-        const Duration(seconds: 3),
-        () => <String>[
-              'Iem 1',
-              'Iem 2',
-              'Iem 3',
-              'Iem 4',
-              'Iem 5',
-              'Iem 6',
-              'Iem 7',
-              'Iem 8',
-              'Iem 9',
-              'Iem 10',
-            ]);
+  Future<HomeState> fetchList() async {
+    List<FilmModel> itemList = [];
+    String apiKey = 'k_xfn4ldbv';
+    String url =
+        'https://imdb-api.com/API/AdvancedSearch/$apiKey?title_type=tv_movie&countries=br&languages=pt&sort=release_date,desc';
+    var response = await http.get(Uri.parse(url));
 
-    return HomeStateLoaded(list: list);
+    if (response.statusCode == 200) {
+      Map<String, dynamic> jsonMap = jsonDecode(response.body);
+
+      List<dynamic> map = jsonMap['results'];
+
+      for (var element in map) {
+        itemList.add(FilmModel.fromJson(element));
+      }
+      if (itemList.isNotEmpty) {
+        return HomeStateLoaded(list: itemList.take(10).toList());
+      } else {
+        return HomeStateEmptyList(list: const []);
+      }
+    } else {
+      return HomeErrorState(message: "Falha ao buscar dados");
+    }
+
+    // return HomeStateLoaded(list: itemList);
   }
 }

@@ -1,4 +1,5 @@
 import 'package:equatable/equatable.dart';
+import 'package:imdb_app/shared/models/filme_model.dart';
 
 class HomeState extends Equatable {
   @override
@@ -14,12 +15,12 @@ class HomeErrorState extends HomeState {
 }
 
 class HomeStateLoaded extends HomeState {
-  final List<String> list;
+  final List<FilmModel> list;
 
   HomeStateLoaded({required this.list});
 }
 
 class HomeStateEmptyList extends HomeState {
-  final List<String> list;
+  final List<FilmModel> list;
   HomeStateEmptyList({required this.list});
 }
